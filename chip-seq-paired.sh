@@ -2,11 +2,27 @@
 
 ###Author: Niek Wit (University of Cambridge)###
 
-file_path="/home/niek/Documents/analyses/ChIP-Seq/test-data"
+###
+Instructions:
+- Create a main folder for the ChIP-Seq experiment with all .fastq.gz files in a sub-folder called raw-data
+- From the command line run: ./chip-seq-paired.sh <path/to/main/folder> <species>
+	-Species options: mouse
+			  human
+###
+
+file_path=$1
 cd $file_path
-index_path="/home/niek/Documents/references/bowtie2-index/GRCh38.p13.genome-index/GRCh38.p13.genome-index" #hg38
-#blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9 
-blacklist_path="/home/niek/Documents/references/blacklists/Human/hg38-blacklist.v2.bed" #hg38
+mkdir -p {bam,fastqc,trim_galore,bigwig}
+
+if [$2 = human]
+	then 
+		index_path="/home/niek/Documents/references/bowtie2-index/GRCh38.p13.genome-index/GRCh38.p13.genome-index" #hg38
+		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg38-blacklist.v2.bed" #hg38
+	else
+		index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
+		blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
+	fi
+
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
 
 echo "Performing QC"
