@@ -2,26 +2,34 @@
 
 ###Author: Niek Wit (University of Cambridge)###
 
-###
-Instructions:
-- Create a main folder for the ChIP-Seq experiment with all .fastq.gz files in a sub-folder called raw-data
-- From the command line run: ./chip-seq-paired.sh <path/to/main/folder> <species>
-	-Species options: mouse
-			  human
-###
+################################################################################################################
+#Instructions:													   #
+#- Create a main folder for the ChIP-Seq experiment with all .fastq.gz files in a sub-folder called raw-data   #
+#- From the command line run:$ ./chip-seq-paired.sh <path/to/main/folder> <species>				   #
+#	-Species options: mouse										   #
+#			  human										   #
+################################################################################################################
+
+if (($# != 2));
+	then 
+		>&2 echo "Error: please provide two arguments"
+		exit
+fi
 
 file_path=$1
 cd $file_path
 mkdir -p {bam,fastqc,trim_galore,bigwig}
 
-if [$2 = human]
+if [ $2 = "human" ];
 	then 
 		index_path="/home/niek/Documents/references/bowtie2-index/GRCh38.p13.genome-index/GRCh38.p13.genome-index" #hg38
 		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg38-blacklist.v2.bed" #hg38
+		echo "Human genome (hg38) and blacklist selected"
 	else
 		index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
 		blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
-	fi
+		echo "Mouse genome (mm9) and blacklist selected"
+fi
 
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
 
@@ -53,6 +61,3 @@ do
 	bamCoverage -p 40 --normalizeUsing RPKM -b $bam_input -o bigwig/$bigwig_output 2>> chip-seq.log
 	
 done
-
-
-
