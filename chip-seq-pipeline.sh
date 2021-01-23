@@ -36,7 +36,8 @@ then
 	fastqc --threads $max_threads -o fastqc/ raw-data/*fastq.gz 2> chip-seq.log
 	multiqc -o "fastqc/" "fastqc/" . 2>> chip-seq.log
 	if [[ $# == 1 ]];
-    		exit 0
+		then
+    			exit 0
 	fi
 fi
 
@@ -74,7 +75,8 @@ then
 	done
 	echo "Alignment completed. Check if deduplication is required."	
 	if [[ $# == 2 ]];
-    		exit 0
+		then
+    			exit 0
 	fi
 fi
 
@@ -92,7 +94,8 @@ then
 		java -jar $PICARD MarkDuplicates INPUT=$sort_output OUTPUT=$dedup_output REMOVE_DUPLICATES=TRUE METRICS_FILE=metric.txt 2>> chip-seq.log
 	done	
 	if [[ $# == 1 ]];
-    		exit 0
+		then
+    			exit 0
 	fi
 fi
 
@@ -111,6 +114,7 @@ then
 	multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o multibamsummary.npz #deeptools
 	plotPCA -in multibamsummary_all.npz -o PCA_readCounts_all.png -T "PCA of read counts" #deeptools	
 	if [[ $# == 1 ]];
-    		exit 0
+		then
+    			exit 0
 	fi
 fi
