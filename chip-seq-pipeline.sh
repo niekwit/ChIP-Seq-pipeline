@@ -55,7 +55,7 @@ fi
 
 if [[ $* == *"align"* ]];
 then
-    echo "Performing alignment"
+    	echo "Performing alignment"
 	mkdir -p {bam,trim_galore}
 	for read1_fastq_gz in raw-data/*_1.fastq.gz
 	do
@@ -72,11 +72,18 @@ then
 		bowtie2 -p 40 -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> chip-seq.log | samtools view -q 15 -bS -@ $max_threads - > "bam/${bowtie2_output}.bam" 2>> chip-seq.log
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
 		bedtools intersect -v -a "bam/${bowtie2_output}.bam" -b $blacklist_path > "bam/${bowtie2_output}-bl.bam" -nonamecheck 2>> chip-seq.log
+	done	
+	#count mapped reads:	
+	echo "Mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
+	for file in bam/*bl.bam
+	do
+		count=samtools view -c -F 4 $file  
+		echo "Mapped read count $file: $count" > mapped_read_count_no_dedup.txt
 	done
-	echo "Alignment completed. Check if deduplication is required."	
+	echo "Alignment completed. Check if deduplication/downsampling is required."	
 	if [[ $# == 2 ]];
 		then
-    			exit 0
+			exit 0
 	fi
 fi
 
@@ -92,6 +99,13 @@ then
 		dedup_output=${file%-bl.bam}
 		dedup_output="$dedup_output-dedupl-sort-bl.bam"
 		java -jar $PICARD MarkDuplicates INPUT=$sort_output OUTPUT=$dedup_output REMOVE_DUPLICATES=TRUE METRICS_FILE=metric.txt 2>> chip-seq.log
+	done	
+	#count mapped reads after deduplication:	
+	echo "Mapped read counts after deduplication:" >> mapped_read_count_dedup.txt	
+	for file in bam/*dedupl-sort-bl.bam
+	do
+		count=samtools view -c -F 4 $file  
+		echo "Mapped read count $file: $count" > mapped_read_count_dedup.txt
 	done	
 	if [[ $# == 1 ]];
 		then
