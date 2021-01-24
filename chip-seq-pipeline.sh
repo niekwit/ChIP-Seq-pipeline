@@ -4,25 +4,23 @@
 
 SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-pipeline/"
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
+#genome=""
 
 usage() {                                    
-	echo "Usage: $0 [fastqc] [-g <species>] [align] [ dedup ] [ pca ]"
-	echo -e "fastqc: performs FastQC and MultiQC on fq.gz files"
-	echo -e "-g <species>: selects reference genome/blacklisted regions:\n\t'human' selects hg38\n\t'mouse' selects mm9"
-	echo -e "align: aligns fq.gz files to selected genome (no deduplication) using HISAT2"
-	echo -e "dedup: removes duplicates using PICARD"
-	echo -e "pca: performs PCA analysis on alignment files"	
+	echo "Usage: $0 [fastqc] [ align <species> ] [ dedup ] [ pca ] [ bigwig ]"
+	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
+	echo "align: aligns fq.gz files to selected genome (no deduplication) using HISAT2"
+	echo -e "Available genomes for alignment:\n\t<human>: hg38\n\t<mouse>: mm9"
+	echo "dedup: removes duplicates using PICARD"
+	echo "pca: performs PCA analysis on alignment files"
+	echo "bigwig: creates BigWig files"
 	exit 2
 }
 
 while getopts 'g:?h' c
 do
 	case $c in
-		h|?) usage 
-    		;;
-		g)	
-    		genome=$OPTARG 
-    		;;
+		h|?) usage;;
 	esac
 done
 
@@ -41,21 +39,20 @@ then
 	fi
 fi
 
-if [ $genome = "human" ];
+if [[ $* == *"align"* ]];
+then
+    	if [[ $* == *"human"* ]];
 	then 
 		index_path="/home/niek/Documents/references/bowtie2-index/GRCh38.p13.genome-index/GRCh38.p13.genome-index" #hg38
 		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg38-blacklist.v2.bed" #hg38
 		echo "Human genome (hg38) and blacklist selected"
-elif [ $genome = "mouse" ];
+	elif [[ $* == *"mouse"* ]];
 	then	
 		index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
 		blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
 		echo "Mouse genome (mm9) and blacklist selected"
-fi
-
-if [[ $* == *"align"* ]];
-then
-    	echo "Performing alignment"
+	fi
+	echo "Performing alignment"
 	mkdir -p {bam,trim_galore}
 	for read1_fastq_gz in raw-data/*_1.fastq.gz
 	do
@@ -77,10 +74,10 @@ then
 	echo "Mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
 	for file in bam/*bl.bam
 	do
-		count=samtools view -c -F 4 $file  
-		echo "Mapped read count $file: $count" > mapped_read_count_no_dedup.txt
+		count=$(samtools view -@ $max_threads -c -F 4 $file)  
+		echo "Mapped read count $file: $count" >> mapped_read_count_no_dedup.txt
 	done
-	echo "Alignment completed. Check if deduplication/downsampling is required."	
+	echo "Alignment completed. Check if deduplication and/or downsampling is required."	
 	if [[ $# == 2 ]];
 		then
 			exit 0
@@ -105,7 +102,7 @@ then
 	for file in bam/*dedupl-sort-bl.bam
 	do
 		count=samtools view -c -F 4 $file  
-		echo "Mapped read count $file: $count" > mapped_read_count_dedup.txt
+		echo "Mapped read count $file: $count" >> mapped_read_count_dedup.txt
 	done	
 	if [[ $# == 1 ]];
 		then
@@ -127,6 +124,24 @@ then
 	sorted_sample_list=$(ls PCA/*sorted.bam | tr "\n" " ")
 	multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o multibamsummary.npz #deeptools
 	plotPCA -in multibamsummary_all.npz -o PCA_readCounts_all.png -T "PCA of read counts" #deeptools	
+	rm PCA/*.bam
+	if [[ $# == 1 ]];
+		then
+    			exit 0
+	fi
+fi
+
+if [[ $@ == *"bigwig"* ]];
+then
+    	echo "Creating BigWig files"
+	mkdir bigwig	
+	for file in bam/*dedupl-sort-bl.bam
+	do 
+		samtools index -@ $max_threads -b $file 2>> chip-seq.log
+		bigwig_output="${file%-dedupl-sort-bl.bam}-norm.bw"
+		bigwig_output=${bigwig_output##*/}
+		bamCoverage -p $max_threads --normalizeUsing RPKM -b $file -o bigwig/$bigwig_output 2>> chip-seq.log
+	done
 	if [[ $# == 1 ]];
 		then
     			exit 0
