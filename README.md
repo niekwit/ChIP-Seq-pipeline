@@ -1,10 +1,10 @@
-### ChIP-Seq analysis pipeline (ChAP))
+# ChIP-Seq analysis pipeline (ChAP)
 
-# Introduction
+## Introduction
 
-This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data.
+This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data. 
 
-# Software dependencies
+## Software dependencies
 
 * hisat2
 * samtools
@@ -13,7 +13,8 @@ This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your pa
 * deeptools
 * FastQC
 * MultiQC
+* MACS2
 
-# Usage
+## Usage
 
-
+Usage: ./chip-seq-pipeline [fastqc] [-g <species>] [align] [ dedup ] [ pca ]
