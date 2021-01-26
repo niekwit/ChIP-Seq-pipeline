@@ -4,16 +4,16 @@
 
 SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-pipeline/"
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
-#genome=""
 
 usage() {                                    
-	echo "Usage: $0 [fastqc] [ align <species> ] [ dedup ] [ pca ] [ bigwig ]"
+	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ]"
+	echo "rename: renames fastq files from configuration file (rename.config)"
 	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
 	echo "align: aligns fq.gz files to selected genome (no deduplication) using HISAT2"
 	echo -e "Available genomes for alignment:\n\t<human>: hg38\n\t<mouse>: mm9"
 	echo "dedup: removes duplicates using PICARD"
 	echo "pca: performs PCA analysis on alignment files"
-	echo "bigwig: creates BigWig files"
+	echo "bigwig: creates bigWig files"
 	exit 2
 }
 
@@ -24,8 +24,26 @@ do
 	esac
 done
 
+
+#renames files
+if [[ $* == *"rename"* ]];
+	then
+		sed '1d' rename.config > raw-data/rename.config
+		input="raw-data/rename.config"
+		while IFS= read -r line
+		do
+		  original_file=$(echo "$line" | cut -d ";" -f 1) #splits line of config file into original file name
+		  new_file=$(echo "$line" | cut -d ";" -f 2) #splits line of config file into new file name
+		  mv "raw-data/${original_file}" "raw-data/${new_file}"
+		done < "$input"
+	if [[ $# == 1 ]];
+		then
+    			exit 0
+	fi
+fi
+
 #determines CPU thread count
-max_threads=$(nproc --all)
+max_threads=40 #$(nproc --all)
 
 if [[ $* == *"fastqc"* ]];
 then
@@ -43,8 +61,8 @@ if [[ $* == *"align"* ]];
 then
     	if [[ $* == *"human"* ]];
 	then 
-		index_path="/home/niek/Documents/references/bowtie2-index/GRCh38.p13.genome-index/GRCh38.p13.genome-index" #hg38
-		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg38-blacklist.v2.bed" #hg38
+		index_path="/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index" #hg19
+		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed" #hg19
 		echo "Human genome (hg38) and blacklist selected"
 	elif [[ $* == *"mouse"* ]];
 	then	
@@ -63,19 +81,19 @@ then
 		read1_val_1_fq_gz="trim_galore/${read1_val_1_fq_gz##*/}"
 		read2_val_2_fq_gz="${read2_fastq_gz%_2.fastq.gz}_2_val_2.fq.gz"
 		read2_val_2_fq_gz="trim_galore/${read2_val_2_fq_gz##*/}"
-		bowtie2_output=${read1_fastq_gz%_1.fastq.gz}
-		bowtie2_output=${bowtie2_output##*/}
+		hisat2_output=${read1_fastq_gz%_1.fastq.gz}
+		hisat2_output=${hisat2_output##*/}
 		echo "Aligning reads to reference $read1_fastq_gz"
-		bowtie2 -p 40 -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> chip-seq.log | samtools view -q 15 -bS -@ $max_threads - > "bam/${bowtie2_output}.bam" 2>> chip-seq.log
+		hisat2 -p 40 -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> chip-seq.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> chip-seq.log
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
-		bedtools intersect -v -a "bam/${bowtie2_output}.bam" -b $blacklist_path > "bam/${bowtie2_output}-bl.bam" -nonamecheck 2>> chip-seq.log
+		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> chip-seq.log
 	done	
 	#count mapped reads:	
-	echo "Mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
+	echo "Uniquely mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
 	for file in bam/*bl.bam
 	do
-		count=$(samtools view -@ $max_threads -c -F 4 $file)  
-		echo "Mapped read count $file: $count" >> mapped_read_count_no_dedup.txt
+		count=$(samtools view -@ $max_threads -c -F 260 $file) #bit 3 and 9 SAM FLAGs
+		echo "$file: $count" >> mapped_read_count_no_dedup.txt
 	done
 	echo "Alignment completed. Check if deduplication and/or downsampling is required."	
 	if [[ $# == 2 ]];
@@ -98,11 +116,11 @@ then
 		java -jar $PICARD MarkDuplicates INPUT=$sort_output OUTPUT=$dedup_output REMOVE_DUPLICATES=TRUE METRICS_FILE=metric.txt 2>> chip-seq.log
 	done	
 	#count mapped reads after deduplication:	
-	echo "Mapped read counts after deduplication:" >> mapped_read_count_dedup.txt	
+	echo "Uniquely mapped read counts after deduplication:" >> mapped_read_count_dedup.txt	
 	for file in bam/*dedupl-sort-bl.bam
 	do
-		count=samtools view -c -F 4 $file  
-		echo "Mapped read count $file: $count" >> mapped_read_count_dedup.txt
+		count=$(samtools view -c -F 260 $file) #bit 3 and 9 SAM FLAGs
+		echo "$file: $count" >> mapped_read_count_dedup.txt
 	done	
 	if [[ $# == 1 ]];
 		then
@@ -122,9 +140,9 @@ then
 		samtools index -@ $max_threads -b "PCA/$sort_file"
 	done
 	sorted_sample_list=$(ls PCA/*sorted.bam | tr "\n" " ")
-	multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o multibamsummary.npz #deeptools
-	plotPCA -in multibamsummary_all.npz -o PCA_readCounts_all.png -T "PCA of read counts" #deeptools	
-	rm PCA/*.bam
+	multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o PCA/multibamsummary.npz #deeptools
+	plotPCA -in PCA/multibamsummary.npz -o PCA/PCA_readCounts_all.png -T "PCA of read counts" #deeptools	
+	#rm PCA/*.bam
 	if [[ $# == 1 ]];
 		then
     			exit 0
@@ -140,7 +158,7 @@ then
 		samtools index -@ $max_threads -b $file 2>> chip-seq.log
 		bigwig_output="${file%-dedupl-sort-bl.bam}-norm.bw"
 		bigwig_output=${bigwig_output##*/}
-		bamCoverage -p $max_threads --normalizeUsing RPKM -b $file -o bigwig/$bigwig_output 2>> chip-seq.log
+		bamCoverage -p $max_threads --binSize 10 --normalizeUsing RPKM --extendReads 200 -b $file -o bigwig/$bigwig_output 2>> chip-seq.log
 	done
 	if [[ $# == 1 ]];
 		then
