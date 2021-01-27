@@ -6,7 +6,7 @@ SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-pipeline/"
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
 
 usage() {                                    
-	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ]"
+	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ] [ peaks ]"
 	echo "rename: renames fastq files from configuration file (rename.config)"
 	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
 	echo "align: aligns fq.gz files to selected genome (no deduplication) using HISAT2"
@@ -14,6 +14,7 @@ usage() {
 	echo "dedup: removes duplicates using PICARD"
 	echo "pca: performs PCA analysis on alignment files"
 	echo "bigwig: creates bigWig files"
+	echo "peaks: call peaks with MACS2 using selected BAM files (enter samples in macs2-input.csv)"
 	exit 2
 }
 
@@ -84,7 +85,7 @@ then
 		hisat2_output=${read1_fastq_gz%_1.fastq.gz}
 		hisat2_output=${hisat2_output##*/}
 		echo "Aligning reads to reference $read1_fastq_gz"
-		hisat2 -p 40 -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> chip-seq.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> chip-seq.log
+		hisat2 -p $max_threads -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> chip-seq.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> chip-seq.log
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
 		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> chip-seq.log
 	done	
@@ -158,10 +159,36 @@ then
 		samtools index -@ $max_threads -b $file 2>> chip-seq.log
 		bigwig_output="${file%-dedupl-sort-bl.bam}-norm.bw"
 		bigwig_output=${bigwig_output##*/}
-		bamCoverage -p $max_threads --binSize 10 --normalizeUsing RPKM --extendReads 200 -b $file -o bigwig/$bigwig_output 2>> chip-seq.log
+		bamCoverage -p $max_threads --binSize 10 --normalizeUsing RPKM --extendReads 200 --effectiveGenomeSize 2827437033 -b $file -o bigwig/$bigwig_output 2>> chip-seq.log
 	done
 	if [[ $# == 1 ]];
 		then
     			exit 0
 	fi
 fi
+
+if [[ $@ == *"peaks"* ]];
+then
+    	echo "Calling peaks with MACS2"
+	sed '1d' macs2-input.csv > macs2-input-temp.csv #removes header from settings part
+	settings=$(head -5 macs2-input-temp.csv) #the first 5 lines contain the MACS2 settings
+	samples_length=`expr $(wc -l < macs2-input-temp.csv) - 6` 
+	tail -n $samples_length macs2-input-temp.csv > macs2-samples-temp.csv
+	mkdir peaks 
+	input="macs2-samples-temp.csv"
+	while IFS= read -r line
+	do
+		macs2_sample=$(echo $line | cut -d " " -f 1)
+		macs2_input=$(echo $line | cut -d " " -f 2)
+		macs2_output_name=$(echo $line | cut -d " " -f 3)
+		macs2 callpeak -t "bam/$macs2_sample" -c "bam/$macs2_input" -n $macs2_output_name --outdir "peaks/$macs2_output_name" $settings
+	done < "$input"
+	rm macs2-input-temp.csv macs2-samples-temp.csv
+	
+	if [[ $# == 1 ]];
+		then
+    			exit 0
+	fi
+fi
+
+
