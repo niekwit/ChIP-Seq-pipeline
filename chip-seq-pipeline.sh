@@ -14,7 +14,7 @@ usage() {
 	echo "dedup: removes duplicates using PICARD"
 	echo "pca: performs PCA analysis on alignment files"
 	echo "bigwig: creates bigWig files"
-	echo "peaks: call peaks with MACS2 using selected BAM files (enter samples in macs2-input.csv)"
+	echo "peaks: calls peaks with MACS2 using selected BAM files (enter samples in macs2-input.csv)"
 	exit 2
 }
 
@@ -64,7 +64,8 @@ then
 	then 
 		index_path="/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index" #hg19
 		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed" #hg19
-		echo "Human genome (hg38) and blacklist selected"
+		homer_genome=$hg19
+		echo "Human genome (hg19) and blacklist selected"
 	elif [[ $* == *"mouse"* ]];
 	then	
 		index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
@@ -129,21 +130,30 @@ then
 	fi
 fi
 
-if [[ $@ == *"pca"* ]];
+if [[ $@ == *"pca"* ]] | [[ $@ == *"PCA"* ]];
 then
     	echo "Performing PCA analysis"
-	mkdir PCA
-	for file in bam/*dedupl-sort-bl.bam
-	do 
-		sort_file="${file%.-dedupl-sort-bl.bam}_sorted.bam"
-		sort_file=${sort_file##*/}
-		samtools sort -@ $max_threads $file -o "PCA/$sort_file"
-		samtools index -@ $max_threads -b "PCA/$sort_file"
-	done
-	sorted_sample_list=$(ls PCA/*sorted.bam | tr "\n" " ")
-	multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o PCA/multibamsummary.npz #deeptools
-	plotPCA -in PCA/multibamsummary.npz -o PCA/PCA_readCounts_all.png -T "PCA of read counts" #deeptools	
-	#rm PCA/*.bam
+	mkdir pca
+	sorted_bam="bam/*dedupl-sort-bl.bam"
+	if [ -f $sorted_bam ]; 
+	then
+		for file in bam/*dedupl-sort-bl.bam
+		do
+			samtools index -@ $max_threads -b "bam/$file"
+			sorted_sample_list=$(ls bam/*dedupl-sort-bl.bam | tr "\n" " ")
+			multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
+			plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "PCA of BAM files" 2>> chip-seq.log #deeptools
+		done
+	else
+		for file in bam/*-bl.bam
+		do
+			sort_file="${file%-bl.bam}_sort-bl.bam"
+			samtools sort -@ $max_threads $file -o "bam/$sort_file"
+			samtools index -@ $max_threads -b "bam/$file"
+			sorted_sample_list=$(ls bam/*_sort-bl.bam | tr "\n" " ")
+			multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
+			plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "PCA of BAM files" 2>> chip-seq.log #deeptools
+		done
 	if [[ $# == 1 ]];
 		then
     			exit 0
@@ -169,7 +179,7 @@ fi
 
 if [[ $@ == *"peaks"* ]];
 then
-    	echo "Calling peaks with MACS2"
+    	echo "Calling/annotating peaks with MACS2/HOMER"
 	sed '1d' macs2-input.csv > macs2-input-temp.csv #removes header from settings part
 	settings=$(head -5 macs2-input-temp.csv) #the first 5 lines contain the MACS2 settings
 	samples_length=`expr $(wc -l < macs2-input-temp.csv) - 6` 
@@ -181,14 +191,12 @@ then
 		macs2_sample=$(echo $line | cut -d " " -f 1)
 		macs2_input=$(echo $line | cut -d " " -f 2)
 		macs2_output_name=$(echo $line | cut -d " " -f 3)
-		macs2 callpeak -t "bam/$macs2_sample" -c "bam/$macs2_input" -n $macs2_output_name --outdir "peaks/$macs2_output_name" $settings
+		macs2 callpeak -t "bam/$macs2_sample" -c "bam/$macs2_input" -n $macs2_output_name --outdir "peaks/$macs2_output_name" $settings 2>> chip-seq.log
+		annotatePeaks.pl "peaks/${macs2_output_name}_summits.bed" $homer_genome > "peaks/${macs2_output_name}_annotated_peaks.txt" 2>> chip-seq.log #HOMER
 	done < "$input"
 	rm macs2-input-temp.csv macs2-samples-temp.csv
-	
 	if [[ $# == 1 ]];
 		then
     			exit 0
 	fi
 fi
-
-
