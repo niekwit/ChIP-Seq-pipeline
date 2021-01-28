@@ -6,7 +6,7 @@ SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-pipeline/"
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
 
 usage() {                                    
-	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ] [ peaks ]"
+	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ] [ peaks ] [ ngsplot ]"
 	echo "rename: renames fastq files from configuration file (rename.config)"
 	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
 	echo "align: aligns fq.gz files to selected genome (no deduplication) using HISAT2"
@@ -15,6 +15,7 @@ usage() {
 	echo "pca: performs PCA analysis on alignment files"
 	echo "bigwig: creates bigWig files"
 	echo "peaks: calls peaks with MACS2 using selected BAM files (enter samples in macs2-input.csv)"
+	echo "ngsplot: generates metagene plots and heatmaps with ngsplot"
 	exit 2
 }
 
@@ -33,9 +34,9 @@ if [[ $* == *"rename"* ]];
 		input="raw-data/rename.config"
 		while IFS= read -r line
 		do
-		  original_file=$(echo "$line" | cut -d ";" -f 1) #splits line of config file into original file name
-		  new_file=$(echo "$line" | cut -d ";" -f 2) #splits line of config file into new file name
-		  mv "raw-data/${original_file}" "raw-data/${new_file}"
+			original_file=$(echo "$line" | cut -d ";" -f 1) #splits line of config file into original file name
+			new_file=$(echo "$line" | cut -d ";" -f 2) #splits line of config file into new file name
+			mv "raw-data/${original_file}" "raw-data/${new_file}"
 		done < "$input"
 	if [[ $# == 1 ]];
 		then
@@ -48,9 +49,9 @@ max_threads=40 #$(nproc --all)
 
 if [[ $* == *"fastqc"* ]];
 then
-    echo "Performing FastQC/MultiQC"
+	echo "Performing FastQC/MultiQC"
 	mkdir fastqc    	
-	fastqc --threads $max_threads -o fastqc/ raw-data/*fastq.gz 2> chip-seq.log
+	fastqc --threads $max_threads -o fastqc/ raw-data/*fastq.gz 2>> chip-seq.log
 	multiqc -o "fastqc/" "fastqc/" . 2>> chip-seq.log
 	if [[ $# == 1 ]];
 		then
@@ -64,12 +65,13 @@ then
 	then 
 		index_path="/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index" #hg19
 		blacklist_path="/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed" #hg19
-		homer_genome=$hg19
+		touch homer_hg19 #temp file for loading correct genome into HOMER for peak annotation
 		echo "Human genome (hg19) and blacklist selected"
 	elif [[ $* == *"mouse"* ]];
 	then	
 		index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
 		blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
+		touch homer_mm9 #temp file for loading correct genome into HOMER for peak annotation
 		echo "Mouse genome (mm9) and blacklist selected"
 	fi
 	echo "Performing alignment"
@@ -104,7 +106,7 @@ then
 	fi
 fi
 
-if [[ $@ == *"dedup"* ]];
+if [[ $@ == *"dedup"* ]] || [[ $@ == *"deduplication"* ]];
 then
     	echo "Performing deduplication"
 	for file in bam/*-bl.bam
@@ -130,30 +132,31 @@ then
 	fi
 fi
 
-if [[ $@ == *"pca"* ]] | [[ $@ == *"PCA"* ]];
+if [[ $@ == *"pca"* ]] || [[ $@ == *"PCA"* ]];
 then
     	echo "Performing PCA analysis"
 	mkdir pca
-	sorted_bam="bam/*dedupl-sort-bl.bam"
+	sorted_bam=$(ls bam/*dedupl-sort-bl.bam | head -1)
 	if [ -f $sorted_bam ]; 
 	then
 		for file in bam/*dedupl-sort-bl.bam
 		do
-			samtools index -@ $max_threads -b "bam/$file"
-			sorted_sample_list=$(ls bam/*dedupl-sort-bl.bam | tr "\n" " ")
-			multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
-			plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "PCA of BAM files" 2>> chip-seq.log #deeptools
+			samtools index -@ $max_threads -b $file
 		done
+		sorted_sample_list=$(ls bam/*dedupl-sort-bl.bam | tr "\n" " ")
+		multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
+		plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "PCA of BAM files" 2>> chip-seq.log #deeptools
 	else
 		for file in bam/*-bl.bam
 		do
 			sort_file="${file%-bl.bam}_sort-bl.bam"
-			samtools sort -@ $max_threads $file -o "bam/$sort_file"
-			samtools index -@ $max_threads -b "bam/$file"
-			sorted_sample_list=$(ls bam/*_sort-bl.bam | tr "\n" " ")
-			multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
-			plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "PCA of BAM files" 2>> chip-seq.log #deeptools
+			samtools sort -@ $max_threads $file -o $sort_file
+			samtools index -@ $max_threads -b $file
 		done
+		sorted_sample_list=$(ls bam/*_sort-bl.bam | tr "\n" " ")
+		multiBamSummary bins --numberOfProcessors max -b $sorted_sample_list -o pca/multibamsummary.npz 2>> chip-seq.log #deeptools
+		plotPCA -in pca/multibamsummary.npz -o pca/PCA_readCounts_all.png -T "Principle Component Analysis" 2>> chip-seq.log #deeptools
+	fi
 	if [[ $# == 1 ]];
 		then
     			exit 0
@@ -185,6 +188,13 @@ then
 	samples_length=`expr $(wc -l < macs2-input-temp.csv) - 6` 
 	tail -n $samples_length macs2-input-temp.csv > macs2-samples-temp.csv
 	mkdir peaks 
+	if [[ -f homer_hg19 ]]; 
+		then
+			homer_genome=hg19
+	elif [[ -f homer_mm_9 ]]; 
+		then
+			homer_genome=mm9
+	fi
 	input="macs2-samples-temp.csv"
 	while IFS= read -r line
 	do
@@ -195,6 +205,46 @@ then
 		annotatePeaks.pl "peaks/${macs2_output_name}_summits.bed" $homer_genome > "peaks/${macs2_output_name}_annotated_peaks.txt" 2>> chip-seq.log #HOMER
 	done < "$input"
 	rm macs2-input-temp.csv macs2-samples-temp.csv
+	if [[ $# == 1 ]];
+		then
+    			exit 0
+	fi
+fi
+
+if [[ $@ == *"ngsplot"* ]];
+then
+    	echo "Generating metagene plots and heatmaps with ngs.plot"
+	mkdir ngsplot 
+	if [[ -f homer_hg19 ]]; 
+		then
+			ngsplot_genome=hg19
+	elif [[ -f homer_mm_9 ]]; 
+		then
+			ngsplot_genome=mm9
+	fi
+	
+	for file in bam/*-dedupl-sort-bl.bam #generate plots only for non-input files
+	do
+		case $file in 
+			*input*) continue;;
+			*) 
+				ngs_output=${file%-dedupl-sort-bl.bam}
+				ngs_output=${ngs_output##*/}	
+				ngs.plot.r -G $ngsplot_genome -R tss -C $file -O "ngsplot/${ngs_output}_tss" -T "ngsplot/$ngs_output" -L 5000
+		esac
+	done
+	
+	if [[ $# == 1 ]];
+		then
+    			exit 0
+	fi
+fi
+
+if [[ $@ == *"qc"* ]] || [[ $@ == *"QC"* ]];
+then
+    	echo "QC analysis ChIP-Seq data"
+	mkdir chip-qc
+	
 	if [[ $# == 1 ]];
 		then
     			exit 0
