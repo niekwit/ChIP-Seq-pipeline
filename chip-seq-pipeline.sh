@@ -1,9 +1,8 @@
 #!/bin/bash
 
 #This pipeline performs ChIP-Seq analsyis for paired-end data (Niek Wit, University of Cambridge, 2021)
-SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-pipeline/"
 PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
-max_threads=40 #$(nproc --all) #determines CPU thread count
+max_threads=$(nproc --all) #determines CPU thread count
 
 usage() {                                    
 	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ pca ] [ bigwig ] [ peaks ] [ ngsplot ]"
