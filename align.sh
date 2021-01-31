@@ -32,7 +32,7 @@ if [[ $* == *"hisat"* ]];
 		echo "Aligning reads to reference $read1_fastq_gz"
 		hisat2 -p $max_threads -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> align.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> align.log
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
-		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> align.log
+		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> align.log #combine into new pipe: hisat2 | samtools view | bedtools intersect | samtools sort
 	done	
 	#count mapped reads:	
 	echo "Uniquely mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
@@ -58,7 +58,7 @@ elif [[ $* == *"bwa"* ]]; ###not working yet###
 		echo "Mouse genome (mm9) and blacklist selected"
 	fi
 	
-	mkdir -p {bam,trim_galore}	
+	mkdir -p {bam,trim_galore}
 	for read1_fastq_gz in raw-data/*_1.fastq.gz
 	do
 		read2_fastq_gz="${read1_fastq_gz%_1.fastq.gz}_2.fastq.gz"
@@ -71,8 +71,8 @@ elif [[ $* == *"bwa"* ]]; ###not working yet###
 		hisat2_output=${read1_fastq_gz%_1.fastq.gz}
 		hisat2_output=${hisat2_output##*/}
 		echo "Aligning reads to reference $read1_fastq_gz"
-		bwa aln -t $max_threads 
-		bwa sampe		
+		#bwa mem -t $max_threads 
+		#bwa 		
 		#hisat2 -p $max_threads -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> align.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> align.log
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
 		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> align.log
@@ -87,7 +87,7 @@ elif [[ $* == *"bwa"* ]]; ###not working yet###
 fi
 
 echo "Alignment completed. Check if deduplication and/or downsampling is required."	
-#add code thats can suggest if samples need downsampling
+#add code thats can suggest if samples need downsampling?
 if [[ $# == 3 ]];
 	then
 		exit 0
