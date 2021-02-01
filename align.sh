@@ -28,15 +28,12 @@ if [[ $* == *"hisat"* ]];
 		read2_val_2_fq_gz="${read2_fastq_gz%_2.fastq.gz}_2_val_2.fq.gz"
 		read2_val_2_fq_gz="trim_galore/${read2_val_2_fq_gz##*/}"
 		hisat2_output=${read1_fastq_gz%_1.fastq.gz}
-		hisat2_output=${hisat2_output##*/}
 		echo "Aligning reads to reference $read1_fastq_gz"
-		hisat2 -p $max_threads -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> align.log | samtools view -q 15 -F 260 -bS -@ $max_threads - > "bam/${hisat2_output}.bam" 2>> align.log
+		hisat2 -p $max_threads -x $index_path -1 $read1_val_1_fq_gz -2 $read2_val_2_fq_gz 2>> align.log | samtools view -q 15 -F 260 -bS -@ $max_threads - | bedtools intersect -v -a "stdin" -b $blacklist_path -nonamecheck | samtools sort -@ $max_threads - > "${hisat2_output}-sort-bl.bam"
 		echo "Removing blacklisted regions from alignment $read1_fastq_gz"
-		bedtools intersect -v -a "bam/${hisat2_output}.bam" -b $blacklist_path > "bam/${hisat2_output}-bl.bam" -nonamecheck 2>> align.log #combine into new pipe: hisat2 | samtools view | bedtools intersect | samtools sort
 	done	
-	#count mapped reads:	
 	echo "Uniquely mapped read counts before deduplication:" >> mapped_read_count_no_dedup.txt	
-	for file in bam/*bl.bam
+	for file in bam/*-sort-bl.bam
 	do
 		count=$(samtools view -@ $max_threads -c -F 260 $file) #bit 3 and 9 SAM FLAGs
 		echo "$file: $count" >> mapped_read_count_no_dedup.txt
