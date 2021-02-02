@@ -1,6 +1,5 @@
 #!/bin/bash
 
-bigwig() {
 echo "Creating BigWig files"
 mkdir bigwig	
 for file in bam/*dedupl-sort-bl.bam
@@ -14,4 +13,3 @@ if [[ $# == 1 ]];
 	then
 		exit 0
 fi
-}

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-qc() {
 echo "QC analysis of ChIP-Seq data"
 mkdir chip-qc
 sorted_bam=$(ls bam/*dedupl-sort-bl.bam | head -1)
@@ -30,4 +29,3 @@ if [[ $# == 1 ]];
 	then
 		exit 0
 fi
-}

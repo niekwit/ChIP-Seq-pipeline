@@ -1,6 +1,5 @@
 #!/bin/bash
 
-dedup() {
 echo "Performing deduplication"
 	echo "Removing duplicates $file"
 	
@@ -20,4 +19,3 @@ echo "Performing deduplication"
 		then
     			exit 0
 	fi
-}

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-fastqc() {
 echo "Performing FastQC/MultiQC"
 	mkdir fastqc    	
 	fastqc --threads $max_threads -o fastqc/ raw-data/*fastq.gz 2>> fastqc.log
@@ -9,4 +8,3 @@ echo "Performing FastQC/MultiQC"
 		then
     			exit 0
 	fi
-}

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-peaks() {
 echo "Calling/annotating peaks with MACS2/HOMER"
 sed '1d' macs2-input.csv > macs2-input-temp.csv #removes header from settings part
 settings=$(head -5 macs2-input-temp.csv) #the first 5 lines contain the MACS2 settings
@@ -28,4 +27,3 @@ if [[ $# == 1 ]];
 	then
 		exit 0
 fi
-}

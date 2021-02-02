@@ -1,6 +1,5 @@
 #!/bin/bash
 
-ngsplot() {
 echo "Generating metagene plots and heatmaps with ngs.plot.r"
 mkdir ngsplot 
 if [[ -f homer_hg19 ]]; 
@@ -41,4 +40,4 @@ if [[ $# == 1 ]];
 	then
 		exit 0
 fi
-}
+
