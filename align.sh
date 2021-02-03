@@ -72,7 +72,7 @@ then
 		read2_val_2_fq_gz="${read2_fastq_gz%_2.fastq.gz}_2_val_2.fq.gz"
 		read2_val_2_fq_gz="trim_galore/${read2_val_2_fq_gz##*/}"
 		bwa_output="${read1_fastq_gz%_1.fastq.gz}-sort-bl.bam"
-		bwa_output="bam/${read1_fastq_gz##*/}"
+		bwa_output="bam/${bwa_output##*/}"
 		bwa mem "$index_path" -t "$max_threads" "$read1_val_1_fq_gz" "$read2_val_2_fq_gz" | samtools view -q 15 -F 260 -bS -@ "$max_threads" - | bedtools intersect -v -a "stdin" -b "$blacklist_path" -nonamecheck | samtools sort -@ "$max_threads" - > "$bwa_output" #bam file will not contain unmapped and multimapped reads
 	done
 elif [[ $* == *"bwa-se"* ]];
