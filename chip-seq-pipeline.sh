@@ -47,6 +47,11 @@ then
     	source "${SCRIPT_DIR}dedup.sh"
 fi
 
+if [[ $@ == *"downsample"* ]];
+then
+    	source "${SCRIPT_DIR}downsample.sh"
+fi
+
 if [[ $@ == *"bigwig"* ]];
 then
     	source "${SCRIPT_DIR}bigwig.sh"
