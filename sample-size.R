@@ -16,7 +16,7 @@ df$file <-gsub('.{1}$', '', df$file)
 df.non.input <- df[!grepl("input", df$file), ]
 df.input <- df[grepl("input", df$file), ]
 
-df.pairs <- read.csv(file="downsample.conf")
+df.pairs <- read.csv(file="downsample.conf")#downsample.conf contains matching chip and input files
 
 df.master <- merge(x=df.non.input, 
                    y=df.pairs,
@@ -48,6 +48,7 @@ df.output$output.file.final <- paste0(df.output$output.file,df.output$chip.temp,
 df.output <- subset(df.output, select=c("factor","input","output.file.final","chip"))
 
 #write data frame to file
-write.table(df.output, file="scaling_factors.txt",
+write.table(df.output, file="downsample/scaling_factors.txt",
             sep=",",
-            row.names=FALSE)
+            row.names=FALSE,
+            quote = FALSE)
