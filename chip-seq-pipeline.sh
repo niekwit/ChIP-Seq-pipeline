@@ -1,9 +1,9 @@
 #!/bin/bash
 
 #This pipeline performs ChIP-Seq analsyis for paired-end data (Niek Wit, University of Cambridge, 2021)
-PICARD="/home/niek/Documents/scripts/Picard/picard.jar"
+PICARD=$(find $HOME -name picard.jar)
+SCRIPT_DIR=$(find $HOME -type d -name "ChIP-Seq-pipeline")
 max_threads=$(nproc --all) #determines CPU thread count
-SCRIPT_DIR="/home/niek/Documents/scripts/ChIP-Seq-scripts/"
 
 usage() {                                    
 	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]"
@@ -47,7 +47,7 @@ then
     	source "${SCRIPT_DIR}dedup.sh"
 fi
 
-if [[ $@ == *"downsample"* ]];
+if [[ $@ == *"downsample"* ]] || [[ $@ == *"downsampling"* ]];
 then
     	source "${SCRIPT_DIR}downsample.sh"
 fi
