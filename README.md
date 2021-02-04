@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data. 
+This ChIP-Seq analsysis pipeline (ChAP) will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data. 
 
 ## Software dependencies
 
@@ -20,11 +20,18 @@ This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your pa
 * [R](https://www.r-project.org/)
 	* [tidyverse](https://www.tidyverse.org/)
 
+## Installation
+
+To download the repository (anywhere in /home):
+> `git clone https://github.com/niekwit/ChIP-Seq-pipeline.git`
+
+All the dependencies are expected to be in the environment variables, except for Picard (this can be installed anywhere in /home)
+
 ## Usage
 
-Usage: `./chip-seq-pipeline.sh [ fastqc ] [ align <aligner-pe/se> <species> ] [ dedup ] [ downsample ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]`
+Create a folder with any name that contains the sub-folder `raw-data` at any location. This sub-folder contains all the fastq.gz files. From the main folder run:
+> `path/to/chip-seq-pipeline.sh [ fastqc ] [ align <aligner-pe/se> <species> ] [ dedup ] [ downsample ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]`
 
-Run `chip-seq-pipeline.sh` from a folder that contains the subfolder `raw-data`. This folder contains all the fastq.gz files.
 It is recommended that the analysis is performed in a step-wise manner.
 For example:
 1. `./chip-seq-pipeline.sh fastqc`: check quality of fastq.gz files
