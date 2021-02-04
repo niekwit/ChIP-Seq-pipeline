@@ -2,7 +2,7 @@
 
 ## Introduction
 
-This ChIP-Seq analsysis pipeline (ChAP) will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data. 
+This ChIP-Seq analsysis pipeline (ChAP) will allow for step-by-step analysis of your paired-end ChIP-Seq NGS data. It can take either single-end or paired-end NGS data.
 
 ## Software dependencies
 
@@ -25,11 +25,15 @@ This ChIP-Seq analsysis pipeline (ChAP) will allow for step-by-step analysis of 
 To download the repository (anywhere in /home):
 > `git clone https://github.com/niekwit/ChIP-Seq-pipeline.git`
 
-All the dependencies are expected to be in the environment variables, except for Picard (this can be installed anywhere in /home)
+All the dependencies are expected to be in the environment variables, except for Picard (this can be installed anywhere in /home).
+
+### Settings for `align`
+* HISAT2 and bwa index files have to be build manually from fasta files. Their locations have to be changed in the `align.sh` file (working on automatic detection).
+* Blacklisted regions can be found [here](https://www.encodeproject.org/annotations/ENCSR636HFF/), and their locations have to be changed in the `align.sh` file (working on automatic detection).
 
 ## Usage
 
-Create a folder with any name that contains the sub-folder `raw-data` at any location. This sub-folder contains all the fastq.gz files. From the main folder run:
+Create a main folder with any name that contains the sub-folder `raw-data`. This sub-folder contains all the fastq.gz files. From the main folder run:
 > `path/to/chip-seq-pipeline.sh [ fastqc ] [ align <aligner-pe/se> <species> ] [ dedup ] [ downsample ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]`
 
 It is recommended that the analysis is performed in a step-wise manner.

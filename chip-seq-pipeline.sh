@@ -13,6 +13,7 @@ usage() {
 	echo -e "\tAvailable alignment algorithms:\n\t\t<bwa-se>: bwa single-end mode\n\t\t<bwa-pe>: bwa paired-end mode\n\t\t<hisat-se>: HISAT2 single-end mode\n\t\t<hisat-pe>: HISAT2 paired-end mode"
 	echo -e "\tAvailable genomes for alignment:\n\t\t<human>: hg19\n\t\t<mouse>: mm9"
 	echo "dedup: removes duplicates using PICARD"
+	echo "downsample: downsamples input files to corresponding ChIP file"
 	echo "qc: performs quality control on alignment files"
 	echo "bigwig: creates bigWig files"
 	echo "peaks: calls peaks with MACS2 using selected BAM files (enter samples in macs2-input.csv)"
