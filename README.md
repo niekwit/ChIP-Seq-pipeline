@@ -17,10 +17,12 @@ This ChIP-Seq analsysis pipeline will allow for step-by-step analysis of your pa
 * [MACS2](https://pypi.org/project/MACS2/)
 * [HOMER](http://homer.ucsd.edu/homer/ngs/index.html)
 * [ngs.plot](https://github.com/shenlab-sinai/ngsplot)
+* [R](https://www.r-project.org/)
+	* [tidyverse](https://www.tidyverse.org/)
 
 ## Usage
 
-Usage: `./chip-seq-pipeline.sh [ fastqc ] [ align <aligner-pe/se> <species> ] [ dedup ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]`
+Usage: `./chip-seq-pipeline.sh [ fastqc ] [ align <aligner-pe/se> <species> ] [ dedup ] [ downsample ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]`
 
 Run `chip-seq-pipeline.sh` from a folder that contains the subfolder `raw-data`. This folder contains all the fastq.gz files.
 It is recommended that the analysis is performed in a step-wise manner.
@@ -29,7 +31,8 @@ For example:
 2. `./chip-seq-pipeline.sh align bwa-pe human`: align files to human genome (no deduplication performed)
 3. One can use a genome browser to map the BAM files and decide whether deduplication is required
 4. `./chip-seq-pipeline.sh dedup`: perform deduplication
-5. `./chip-seq-pipeline.sh qc`: perform quality control of bam files and replicates
-6. `./chip-seq-pipeline.sh bigwig`: create BigWig files
-7. `./chip-seq-pipeline.sh peaks`: call/annotate peaks with MACS2/HOMER
-8. `./chip-seq-pipeline.sh ngsplot`: generate metagene plots and heatmaps
+5. `./chip-seq-pipeline.sh downsampling`: perform downsampling on input file if read number is higher than corresponding ChIP sample
+6. `./chip-seq-pipeline.sh qc`: perform quality control of bam files and replicates
+7. `./chip-seq-pipeline.sh bigwig`: create BigWig files
+8. `./chip-seq-pipeline.sh peaks`: call/annotate peaks with MACS2/HOMER
+9. `./chip-seq-pipeline.sh ngsplot`: generate metagene plots and heatmaps
