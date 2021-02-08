@@ -1,9 +1,11 @@
 #!/bin/bash
 
 #This pipeline performs ChIP-Seq analsyis for paired-end data (Niek Wit, University of Cambridge, 2021)
+
 PICARD=$(find $HOME -name picard.jar)
 SCRIPT_DIR=$(find $HOME -type d -name "ChIP-Seq-pipeline")
 max_threads=$(nproc --all) #determines CPU thread count
+source "${SCRIPT_DIR}general-settings.conf" #loads locations of genome indeces, etc
 
 usage() {                                    
 	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]"

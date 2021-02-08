@@ -6,26 +6,26 @@ mkdir -p {bam,trim_galore}
 #selects relevant reference files
 if [[ "$*" == *"hisat"* ]] && [[ "$*" == *"human"* ]];
 then
-	index_path="/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index" #hg19
-	blacklist_path="/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed" #hg19
+	index_path="$index_path_hs1" #hg19
+	blacklist_path="$blacklist_path_hg19" #hg19
 	touch homer_hg19 #file for loading correct genome with downstream applications
 	echo "Human genome (hg19) and blacklist selected"
 elif [[ "$*" == *"hisat"* ]] && [[ "$*" == *"mouse"* ]];
 then	
-	index_path="/home/niek/Documents/references/bowtie2-index/mm9/mm9.genome-index" #mm9
-	blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
+	index_path="$index_path_mm1" #mm9
+	blacklist_path="$blacklist_path_mm9" #mm9
 	touch homer_mm9 #file for loading correct genome with downstream applications
 	echo "Mouse genome (mm9) and blacklist selected"
 elif [[ "$*" == *"bwa"* ]] && [[ "$*" == *"human"* ]]; ###work in progress###
 then
-	index_path="/home/niek/Documents/references/bwa-index/GRCh37/ucsc.hg19.fasta" #hg19
-	blacklist_path="/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed" #hg19
+	index_path="$index_path_hs2" #hg19
+	blacklist_path="$blacklist_path_hg19" #hg19
 	touch homer_hg19 #file for loading correct genome with downstream applications
 	echo "Human genome (hg19) and blacklist selected"
 elif [[ "$*" == *"bwa"* ]] && [[ "$*" == *"mouse"* ]];
 then
-	index_path="###" #mm9
-	blacklist_path="/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed" #mm9
+	index_path="$index_path_mm2" #mm9
+	blacklist_path="$blacklist_path_mm9" #mm9
 	touch homer_mm9 #file for loading correct genome with downstream applications
 	echo "Mouse genome (mm9) and blacklist selected"
 fi
