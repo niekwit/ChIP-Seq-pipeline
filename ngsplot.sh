@@ -34,7 +34,7 @@ then
 		scaling_output_name=$(echo $line | cut -d "," -f 3)
 		scaling_output_name=${scaling_output_name##*/}
 		scaling_output_name=${scaling_output_name%-ds.bam}
-		ngs.plot.r -G $ngsplot_genome -R tss -C "$input:$chip" -O "ngsplot/$scaling_output_name/${scaling_output_name}_tss" -T $scaling_output_name -L 5000 2>> ngsplot.log
+		ngs.plot.r -G $ngsplot_genome -R tss -C "$chip:$input" -O "ngsplot/$scaling_output_name/${scaling_output_name}_tss" -T $scaling_output_name -L 5000 2>> ngsplot.log
 	done < "$input"
 
 
