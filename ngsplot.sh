@@ -36,7 +36,7 @@ then
 		scaling_output_name=${scaling_output_name%-ds.bam}
 		ngs.plot.r -G $ngsplot_genome -R tss -C "$chip:$input" -O "ngsplot/$scaling_output_name/${scaling_output_name}_tss" -T $scaling_output_name -L 5000 2>> ngsplot.log
 	done < "$input"
-
+fi
 
 if [[ -f ngsplot.conf ]] && [[ ! -f downsample/scaling_factors.txt ]]; 
 then

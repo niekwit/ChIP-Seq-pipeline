@@ -5,10 +5,10 @@
 PICARD=$(find $HOME -name picard.jar)
 SCRIPT_DIR=$(find $HOME -type d -name "ChIP-Seq-pipeline")
 max_threads=$(nproc --all) #determines CPU thread count
-source "${SCRIPT_DIR}genome-index.conf" #loads locations of genome indeces, etc
+source "${SCRIPT_DIR}/genome-index.conf" #loads locations of genome indeces, etc
 
 usage() {                                    
-	echo "Usage: $0 [ rename ] [ fastqc ] [ align <species> ] [ dedup ] [ qc ] [ bigwig ] [ peaks ] [ ngsplot ]"
+	echo "Usage: $0 [rename] [fastqc] [align <species>] [dedup] [qc] [bigwig] [peaks] [ngsplot]"
 	echo "rename: renames fastq files from configuration file (rename.config)"
 	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
 	echo "align: aligns fq.gz files to selected genome (no deduplication) using bwa or HISAT2 in single-end or paired-end mode:"
@@ -32,45 +32,45 @@ done
 
 if [[ $@ == *"rename"* ]];
 then
-	source "${SCRIPT_DIR}rename.sh"
+	source "${SCRIPT_DIR}/rename.sh"
 fi
 
 if [[ $@ == *"fastqc"* ]];
 then
-	source "${SCRIPT_DIR}fastqc.sh"
+	source "${SCRIPT_DIR}/fastqc.sh"
 fi
 
 if [[ $@ == *"align"* ]];
 then
-    	source "${SCRIPT_DIR}align.sh"
+    	source "${SCRIPT_DIR}/align.sh"
 fi
 
 if [[ $@ == *"dedup"* ]] || [[ $@ == *"deduplication"* ]];
 then
-    	source "${SCRIPT_DIR}dedup.sh"
+    	source "${SCRIPT_DIR}/dedup.sh"
 fi
 
 if [[ $@ == *"downsample"* ]] || [[ $@ == *"downsampling"* ]];
 then
-    	source "${SCRIPT_DIR}downsample.sh"
+    	source "${SCRIPT_DIR}/downsample.sh"
 fi
 
 if [[ $@ == *"bigwig"* ]];
 then
-    	source "${SCRIPT_DIR}bigwig.sh"
+    	source "${SCRIPT_DIR}/bigwig.sh"
 fi
 
 if [[ $@ == *"peak"* ]];
 then
-    	source "${SCRIPT_DIR}peaks.sh"
+    	source "${SCRIPT_DIR}/peaks.sh"
 fi
 
 if [[ $@ == *"ngsplot"* ]];
 then
-    	source "${SCRIPT_DIR}ngsplot.sh"
+    	source "${SCRIPT_DIR}/ngsplot.sh"
 fi
 
 if [[ $@ == *"qc"* ]] || [[ $@ == *"QC"* ]];
 then
-    	source "${SCRIPT_DIR}qc.sh"
+    	source "${SCRIPT_DIR}/qc.sh"
 fi
