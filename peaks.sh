@@ -15,7 +15,7 @@ qvalue=$(cat settings.yaml | shyaml get-value MACS2.qvalue)
 extsize=$(cat settings.yaml | shyaml get-value MACS2.extsize)
 
 #checking MACS2 settings
-if [[ *$format* != "ELAND" ]] && [[ $format != "BED" ]] && [[ $format != "ELANDMULTI" ]] && [[ $format != "ELANDEXPORT" ]] && [[ $format != "SAM" ]] && [[ $format != "BAM" ]] && [[ $format != "BOWTIE" ]] && [[ $format != "BAMPE" ]] && [[ $format != "BEDPE" ]] && [[ $format != "AUTO" ]];
+if [[ $format != "ELAND" ]] && [[ $format != "BED" ]] && [[ $format != "ELANDMULTI" ]] && [[ $format != "ELANDEXPORT" ]] && [[ $format != "SAM" ]] && [[ $format != "BAM" ]] && [[ $format != "BOWTIE" ]] && [[ $format != "BAMPE" ]] && [[ $format != "BEDPE" ]] && [[ $format != "AUTO" ]];
 	then
 		echo "ERROR: invalid file format chosen."
 		echo "Compatible formats: ELAND, BED, ELANDMULTI, ELANDEXPORT, SAM, BAM, BOWTIE, BAMPE or BEDPE"
@@ -23,9 +23,22 @@ if [[ *$format* != "ELAND" ]] && [[ $format != "BED" ]] && [[ $format != "ELANDM
 		exit 1
 fi
 
+if [[ $macs2_genome != "hs" ]] && [[ $macs2_genome != "mm" ]] && [[ $macs2_genome != "ce" ]] && [[ $macs2_genome != "dm" ]]
+	then
+		echo "ERROR: invalid genome chosen."
+		echo "Available genomes: hs, mm, ce and dm"
 
+if [[ ! $genome_size =~ ^-?[0-9]+$ ]];
+	then
+		echo "ERROR: genome size should be an integer."
+		exit 1
+fi
 
-exit 1
+if [[ ! $qvalue  ]];
+	then
+		echo "ERROR: genome size should be an integer."
+		exit 1
+fi
 
 
 #Load Homer settings
