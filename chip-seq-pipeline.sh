@@ -5,9 +5,15 @@
 PICARD=$(find $HOME -name picard.jar)
 SCRIPT_DIR=$(find $HOME -type d -name "ChIP-Seq-pipeline")
 max_threads=$(nproc --all) #determines CPU thread count
-source "${SCRIPT_DIR}/genome-index.conf" #loads locations of genome indeces, etc
+#source "${SCRIPT_DIR}/genome-index.conf" #loads locations of genome indeces, etc
+align_prog=""
+dedup=""
+bigwig=""
+fastqc=""
+downsample=""
+qc=""
 
-usage() {                                    
+usage() {
 	echo "Usage: $0 [rename] [fastqc] [align <species>] [dedup] [qc] [bigwig] [peaks] [ngsplot]"
 	echo "rename: renames fastq files from configuration file (rename.config)"
 	echo "fastqc: performs FastQC and MultiQC on fq.gz files"
@@ -23,13 +29,43 @@ usage() {
 	exit 2
 }
 
-while getopts '?h' c
+
+while getopts 'qsfbda:g:?h' c
 do
 	case $c in
-		h|?) usage;;
+		a) align_prog=$OPTARG ;;
+		b) bigwig="TRUE" ;;
+		g) genome=$OPTARG ;;
+		d) dedup="TRUE" ;;
+		f) fastqc="TRUE";;
+		s) down_sample="TRUE";;
+		q) qc="TRUE";;
+		h|?) usage ;;
 	esac
 done
 
+if [[ $fastqc == "TRUE" ]]; then
+	source "${SCRIPT_DIR}/fastqc.sh"
+fi
+
+if [[ -n $align_prog ]]; then
+	source "${SCRIPT_DIR}/align.sh"
+fi
+
+if [[ $dedup == "TRUE" ]]; then
+	source "${SCRIPT_DIR}/dedup.sh"
+fi
+
+if [[ $bigwig == "TRUE" ]]; then
+	source "${SCRIPT_DIR}/bigwig.sh"
+fi
+
+if [[ $downsample == "TRUE" ]]; then
+	source "${SCRIPT_DIR}/downsample.sh"
+fi
+
+
+: <<'END'
 if [[ $@ == *"rename"* ]];
 then
 	source "${SCRIPT_DIR}/rename.sh"
@@ -74,3 +110,4 @@ if [[ $@ == *"qc"* ]] || [[ $@ == *"QC"* ]];
 then
     	source "${SCRIPT_DIR}/qc.sh"
 fi
+END

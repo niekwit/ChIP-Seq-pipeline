@@ -1,10 +1,10 @@
 #!/bin/bash
 
 #load bamCoverage settings:
-binsize=$(cat settings.yaml | shyaml get-value BigWig.binSize)
-normalizeusing=$(cat settings.yaml | shyaml get-value BigWig.normalizeUsing)
-extendreads=$(cat settings.yaml | shyaml get-value BigWig.extendReads)
-effectivegenomesize=$(cat settings.yaml | shyaml get-value BigWig.effectiveGenomeSize)
+binsize=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.binSize)
+normalizeusing=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.normalizeUsing)
+extendreads=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.extendReads)
+effectivegenomesize=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.effectiveGenomeSize)
 
 #checking bamCoverage settings:
 if [[ ! $binsize =~ ^-?[0-9]+$ ]];

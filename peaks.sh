@@ -34,10 +34,9 @@ if [[ ! $genome_size =~ ^-?[0-9]+$ ]];
 		exit 1
 fi
 
-if [[ ! $qvalue  ]];
+if [[ ! $qvalue > 0.05 ]];
 	then
-		echo "ERROR: genome size should be an integer."
-		exit 1
+		echo "WARNING: q-value is higher than default 0.05"
 fi
 
 
