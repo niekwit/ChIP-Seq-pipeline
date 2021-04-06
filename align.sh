@@ -1,6 +1,10 @@
 #!/bin/bash
 align_setting=""
 
+threads=$1
+align_prog=$2
+genome=$3
+
 #mkdir -p {bam,trim_galore}
 
 #selects relevant reference files
@@ -10,11 +14,9 @@ elif [[ $align_prog == *"bwa"* ]];then
 	align_setting="bwa"
 fi
 
-
 index_path=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value $align_setting.$genome)
 blacklist_path=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value blacklist.$genome)
 
-max_threads=40
 #performs trimming, alignment, removal of blacklisted regions, and sorts
 #to do: perform trimming seperately; fix se-alignments
 if [[ $align_prog == *"-se"* ]];then
@@ -52,7 +54,7 @@ if [[ $align_prog == *"hisat2-pe"* ]]; then
 		read2_val_2_fq_gz="trim_galore/${read2_val_2_fq_gz##*/}"
 		hisat2_output="${read1_fastq_gz%_1.fastq.gz}-sort-bl.bam"
 		hisat2_output="bam/${read1_fastq_gz##*/}"
-		hisat2 -p "$max_threads" -x $index_path -1 "$read1_val_1_fq_gz" -2 "$read2_val_2_fq_gz" 2>> align.log | samtools view -q 15 -F 260 -bS -@ "$max_threads" - | bedtools intersect -v -a "stdin" -b "$blacklist_path" -nonamecheck | samtools sort -@ "$max_threads" - > "$hisat2_output" #bam file will not contain unmapped and multimapped reads 
+		hisat2 -p "$threads" -x $index_path -1 "$read1_val_1_fq_gz" -2 "$read2_val_2_fq_gz" 2>> align.log | samtools view -q 15 -F 260 -bS -@ "$threads" - | bedtools intersect -v -a "stdin" -b "$blacklist_path" -nonamecheck | samtools sort -@ "$threads" - > "$hisat2_output" #bam file will not contain unmapped and multimapped reads 
 	done
 elif [[ $align_prog == *"hisat2-se"* ]]; then
 	echo "Single-end alignment selected with HISAT2"
@@ -63,7 +65,7 @@ elif [[ $align_prog == *"hisat2-se"* ]]; then
 		echo $file
 		hisat2_output="${file%_trimmed.fq.gz}-sort-bl.bam"
 		hisat2_output="bam/${hisat2_output##*/}"
-		zcat $file | hisat2 -p "$max_threads" -x "$index_path" - 2>> align.log | samtools view -q 15 -F 260 -bS -@ "$max_threads" - | bedtools intersect -v -a "stdin" -b "$blacklist_path" -nonamecheck | samtools sort -@ "$max_threads" - > "$hisat2_output" #bam file will not contain unmapped and multimapped reads
+		zcat $file | hisat2 -p "$threads" -x "$index_path" - 2>> align.log | samtools view -q 15 -F 260 -bS -@ "$threads" - | bedtools intersect -v -a "stdin" -b "$blacklist_path" -nonamecheck | samtools sort -@ "$threads" - > "$hisat2_output" #bam file will not contain unmapped and multimapped reads
 	done
 fi
 

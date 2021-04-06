@@ -1,3 +1,4 @@
+Genome: "hg19"
 hisat2: #genome index
   hg19: "/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index"
   hg38: "/home/niek/Documents/references/hisat2-index/GRCh38.p13.genome//home/niek/Documents/references/hisat2-index/GRCh38.p13.genome"
@@ -21,5 +22,3 @@ MACS2:
   genome-size: 2.7e9
   qvalue: 0.05
   extsize: 200
-Homer:
-  genome: "hg19"
