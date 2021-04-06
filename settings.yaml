@@ -1,0 +1,25 @@
+hisat2: #genome index
+  hg19: "/home/niek/Documents/references/hisat2-index/GRCh37-hg19ucsc/hg19-index"
+  hg38: "/home/niek/Documents/references/hisat2-index/GRCh38.p13.genome//home/niek/Documents/references/hisat2-index/GRCh38.p13.genome"
+  mm9: ""
+bwa: #genome index
+  hg19: "/home/niek/Documents/references/bwa-index/GRCh37/ucsc.hg19.fasta"
+  hg38: ""
+  mm9: ""
+blacklist:
+  hg19: "/home/niek/Documents/references/blacklists/Human/hg19/wgEncodeDukeMapabilityRegionsExcludable.bed"
+  hg38: "/home/niek/Documents/references/blacklists/Human/hg38/hg38-blacklist.v2.bed"
+  mm9: "/home/niek/Documents/references/blacklists/Mouse/mm9-blacklist.bed"
+BigWig:
+  binSize: "10"
+  normalizeUsing: "RPKM"
+  extendReads: "200"
+  effectiveGenomeSize: "2827437033"
+MACS2:
+  format: "AUTO"
+  genome: "hs"
+  genome-size: 2.7e9
+  qvalue: 0.05
+  extsize: 200
+Homer:
+  genome: "hg19"
