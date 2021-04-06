@@ -33,11 +33,13 @@ picard=[line[0:] for line in subprocess.check_output("find $HOME -name picard.ja
 picard=picard[0].decode("utf-8")
 
 
+
 ''''
 with open(script_dir+"/settings.yaml") as file:
         settings=yaml.full_load(file)
 genome= #load from yaml and not command line
 '''
+genome="hg19"
 
 max_threads=multiprocessing.cpu_count()
 threads=args["threads"]
@@ -60,3 +62,8 @@ if align in align_options:
 dedup=args["deduplication"]
 if dedup == True:
     subprocess.call(["bash",script_dir + "/dedup.sh",{picard}])
+
+
+subprocess.call(["bash",script_dir + "/test.sh",{threads}])
+
+subprocess.run(['dig', '+short', 'stackoverflow.com'], check=True, text=True)
