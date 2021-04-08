@@ -1,7 +1,11 @@
 #!/bin/bash
 
 echo "Generating metagene plots and heatmaps with ngs.plot.r"
-mkdir ngsplot 
+
+WORK_DIR=$(pwd)
+ngsplot_genome=$(cat "$WORK_DIR/settings.yaml" | shyaml get-value Genome)
+
+mkdir -p ngsplot 
 if [[ -f homer_hg19 ]]; 
 	then
 		ngsplot_genome=hg19

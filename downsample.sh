@@ -1,5 +1,7 @@
 #!/bin/bash
 
+threads=$1
+
 echo "Performing downsampling"
 mkdir -p "downsample"
 dedup_bam=$(ls bam/*dedupl-sort-bl.bam 2> /dev/null | head -1 ) #returns empty variable without *dedupl-sort-bl.bam files and no error message
@@ -12,7 +14,7 @@ then
 		echo "No indexed bam files found, indexing..."
 		for file in bam/*dedupl-sort-bl.bam
 		do
-			samtools index -@ "$max_threads" -b "$file"
+			samtools index -@ "$threads" -b "$file"
 		done
 	elif [[ -f $indexed_bam ]];
 	then
@@ -27,7 +29,7 @@ then
 		echo "No indexed bam files found, indexing..."
 		for file in bam/*-sort-bl.bam
 		do
-			samtools index -@ "$max_threads" -b "$file"
+			samtools index -@ "$threads" -b "$file"
 		done	
 	elif [[ -f $indexed_bam ]];
 	then
@@ -48,13 +50,8 @@ do
 	scaling_factor=$(echo $line | cut -d "," -f 1)
 	scaling_input=$(echo $line | cut -d "," -f 2)
 	scaling_output_name=$(echo $line | cut -d "," -f 3)
-	samtools view -@ "$max_threads" -s "$scaling_factor" -b "$scaling_input" -o "$scaling_output_name"
+	samtools view -@ "$threads" -s "$scaling_factor" -b "$scaling_input" -o "$scaling_output_name"
 done < "$input"
 echo -e "\n"
 
 rm "downsample/scaling_factors-temp.txt"
-
-if [[ $# == 1 ]];
-	then
-		exit 0
-fi

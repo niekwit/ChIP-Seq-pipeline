@@ -5,7 +5,7 @@ sed '1d' macs2-input.csv > macs2-input-temp.csv #removes header from settings pa
 settings=$(head -5 macs2-input-temp.csv) #the first 5 lines contain the MACS2 settings
 samples_length=`expr $(wc -l < macs2-input-temp.csv) - 6` 
 tail -n $samples_length macs2-input-temp.csv > macs2-samples-temp.csv
-mkdir peaks 
+mkdir -p peaks 
 
 #Load MACS2 settings
 format=$(cat settings.yaml | shyaml get-value MACS2.format)
@@ -34,7 +34,7 @@ if [[ ! $genome_size =~ ^-?[0-9]+$ ]];
 		exit 1
 fi
 
-if [[ ! $qvalue > 0.05 ]];
+if [[ $(bc <<< "$qvalue > $default") == 1 ]];
 	then
 		echo "WARNING: q-value is higher than default 0.05"
 fi

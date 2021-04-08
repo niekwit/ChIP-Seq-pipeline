@@ -1,5 +1,7 @@
 #!/bin/bash
 
+threads=$1
+
 #load bamCoverage settings:
 binsize=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.binSize)
 normalizeusing=$(cat "$SCRIPT_DIR/settings.yaml" | shyaml get-value BigWig.normalizeUsing)
@@ -40,8 +42,8 @@ mkdir -p "$bigwig_dir"
 function big_wig {
 	bigwig_output="${file%-dedupl-sort-bl.bam}-norm.bw"
 	bigwig_output=${bigwig_output##*/}
-	bamCoverage -p $max_threads --binSize "$binsize" --normalizeUsing "$normalizeusing" --extendReads "$extendreads" --effectiveGenomeSize "$effectivegenomesize" -b $file -o $bigwig_dir/$bigwig_output 2>> bigwig.log
-}  
+	bamCoverage -p $threads --binSize "$binsize" --normalizeUsing "$normalizeusing" --extendReads "$extendreads" --effectiveGenomeSize "$effectivegenomesize" -b $file -o $bigwig_dir/$bigwig_output 2>> bigwig.log
+}
 
 echo "Creating BigWig files"
 sorted_bam=$(ls -l bam/*dedupl-sort-bl.bam 2> /dev/null | wc -l) #returns zero without *dedupl-sort-bl.bam files
@@ -52,7 +54,7 @@ then
 	then
 		for file in bam/*dedupl-sort-bl.bam
 		do 
-			samtools index -@ $max_threads -b $file 2>> bigwig.log
+			samtools index -@ $threads -b $file 2>> bigwig.log
 			big_wig
 		done
 	elif [[ $index_bam != 0 ]];
@@ -70,7 +72,7 @@ then
 	then
 		for file in bam/*sort-bl.bam
 		do 
-			samtools index -@ $max_threads -b $file 2>> bigwig.log
+			samtools index -@ $threads -b $file 2>> bigwig.log
 			big_wig
 		done
 	elif [[ $index_bam != 0 ]];
@@ -80,9 +82,4 @@ then
 			big_wig
 		done
 	fi		
-fi
-	
-if [[ $# == 1 ]];
-	then
-		exit 0
 fi
