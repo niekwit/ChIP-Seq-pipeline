@@ -7,6 +7,7 @@ import subprocess
 import multiprocessing
 import yaml
 import timeit
+import time
 
 start = timeit.default_timer()
 
@@ -19,7 +20,7 @@ ap.add_argument("-r", "--rename", required=False, action='store_true',
 ap.add_argument("-f", "--fastqc", required=False, action='store_true',
    help="Perform FASTQC")
 ap.add_argument("-a", "--align", required=False,
-   help="Trim and align raw data to index. Options: hisat2-se, hisat2-pe, bwa-se and bwa-pe")
+   help="Trim and align raw data to index. Available options: hisat2-se, hisat2-pe, bwa-se and bwa-pe")
 ap.add_argument("-d", "--deduplication", required=False, action='store_true',
    help="Perform deduplication of BAM files")
 ap.add_argument("-s", "--downsample", required=False, action='store_true',
@@ -60,13 +61,13 @@ if rename == True:
 fastqc=args["fastqc"]
 fastqc_script=script_dir+"/fastqc.sh"
 if fastqc == True:
-    subprocess.run([fastqc_script,threads])
+    subprocess.run([fastqc_script,str(threads)])
 
 align=args["align"]
 align_options=["hisat2-se","hisat2-pe","bwa-se","bwa-pe"]
 align_script=script_dir+"/align.sh"
 if align in align_options:
-    subprocess.run([align_script,threads,align,genome])
+    subprocess.run([align_script,str(threads),align,genome])
     
 dedup=args["deduplication"]
 dedup_script=script_dir+"/dedup.sh"
@@ -76,17 +77,17 @@ if dedup == True:
 downsample=args["downsample"]
 downsample_script=script_dir+"/downsample.sh"
 if downsample == True:
-    subprocess.run([downsample_script,threads])
+    subprocess.run([downsample_script,str(threads)])
     
 bigwig=args["bigwig"]
 bigwig_script=script_dir+"/bigwig.sh"
 if bigwig == True:
-    subprocess.run([bigwig_script,threads])
+    subprocess.run([bigwig_script,str(threads)])
     
 qc=args["qc"]
 qc_script=script_dir+"/qc.sh"
 if qc == True:
-    subprocess.run([qc_script,threads])
+    subprocess.run([qc_script,str(threads)])
     
 peaks=args["peaks"]
 peaks_script=script_dir+"/peaks.sh"
@@ -98,5 +99,9 @@ ngsplot_script=script_dir+"/ngsplot.sh"
 if ngsplot == True:
     subprocess.run([ngsplot_script])
 
+#print total run time
 stop = timeit.default_timer()
-print('Total run time: ', stop - start)
+total_time = stop - start
+ty_res = time.gmtime(total_time)
+res = time.strftime("%H:%M:%S",ty_res)
+print('Total run time: ', res)
