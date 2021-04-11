@@ -19,7 +19,7 @@ ap.add_argument("-r", "--rename", required=False, action='store_true',
    help="Rename fq files")
 ap.add_argument("-f", "--fastqc", required=False, action='store_true',
    help="Perform FASTQC")
-ap.add_argument("-a", "--align", required=False,
+ap.add_argument("-a", "--align",choices=['hisat-se','hisat-se','bwa-pe','bwa-se'], required=False,
    help="Trim and align raw data to index. Available options: hisat2-se, hisat2-pe, bwa-se and bwa-pe")
 ap.add_argument("-d", "--deduplication", required=False, action='store_true',
    help="Perform deduplication of BAM files")
