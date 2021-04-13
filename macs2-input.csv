@@ -1,0 +1,11 @@
+settings  
+-g hs 
+-f AUTO 
+--qvalue 0.05 
+--extsize 200 
+-B  
+sample input output_name
+S04_HelaCAS9_SET1B_Nx_rep1-dedupl-sort-bl.bam S01_HelaCAS9_SET1Binput_Nx_rep1-dedupl-sort-bl.bam SET1B-Nx-1
+S05_HelaCAS9_SET1B_Hx_rep1-dedupl-sort-bl.bam S02_HelaCAS9_SET1Binput_Hx_rep1-dedupl-sort-bl.bam SET1B-Hx-1
+S08_HelaCAS9_HIF1A_Hx_rep1-dedupl-sort-bl.bam S03_HelaCAS9_HIFinput_Hx_rep1-dedupl-sort-bl.bam HIF1A-Hx-1
+S09_HelaCAS9_HIF2A_Hx_rep1-dedupl-sort-bl.bam S03_HelaCAS9_HIFinput_Hx_rep1-dedupl-sort-bl.bam HIF2A-Hx-1
